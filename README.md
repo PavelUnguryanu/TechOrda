@@ -4,7 +4,7 @@
 
 [gitignore](https://github.com/PavelUnguryanu/jusan-git/tree/66ebb9deccfece1aa2646016cd1d3286981f32a0)
 
-[branch](https://github.com/PavelUnguryanu/jusan-git/tree/e7d30c7fc7adc36cb0b1d084d294a6082d6a0ef1)
+[branch](https://github.com/PavelUnguryanu/jusan-git/tree/3a560c4685f2efea23dd4362d32c8739b3b84937)
 
 [merge](https://github.com/PavelUnguryanu/jusan-git/tree/4d6503259faa822a358533ac2ac735b7d9859f36)
 
