@@ -1,0 +1,106 @@
+---
+- name: Configure Nginx servers
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: Ensure Nginx is installed
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Ensure /etc/nginx/conf.d exists
+      ansible.builtin.file:
+        path: /etc/nginx/conf.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Remove default Nginx configuration
+      ansible.builtin.file:
+        path: /etc/nginx/conf.d/default.conf
+        state: absent
+
+    - name: Copy main nginx.conf file
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Debug loop variables
+      ansible.builtin.debug:
+        msg: "Processing server: {{ item.server_name }} on port: {{ item.server_port }}"
+      loop:
+        - server_port: 7070
+          server_name: jmart-ansible.kz
+          locations:
+            - path: /main
+              status_code: 200
+              message: Добро пожаловать на JMart!
+            - path: /profile
+              status_code: 201
+              message: Это страница профиля.
+        - server_port: 8080
+          server_name: jusan-ansible.kz
+          locations:
+            - path: /
+              status_code: 200
+              message: Добро пожаловать на Jusan Bank!
+            - path: /account
+              status_code: 202
+              message: Здесь ваш банковский счет!
+        - server_port: 9090
+          server_name: invest-ansible.kz
+          locations:
+            - path: /home
+              status_code: 200
+              message: Добро пожаловать на Jusan Invest!
+            - path: /user
+              status_code: 203
+              message: Это страница с вашим брокерским счетом.
+
+    - name: Generate server configurations from template
+      ansible.builtin.template:
+        src: server.conf.j2
+        dest: /etc/nginx/conf.d/{{ item.server_name }}.conf
+        owner: root
+        group: root
+        mode: '0644'
+      loop:
+        - server_port: 7070
+          server_name: jmart-ansible.kz
+          locations:
+            - path: /main
+              status_code: 200
+              message: Добро пожаловать на JMart!
+            - path: /profile
+              status_code: 201
+              message: Это страница профиля.
+        - server_port: 8080
+          server_name: jusan-ansible.kz
+          locations:
+            - path: /
+              status_code: 200
+              message: Добро пожаловать на Jusan Bank!
+            - path: /account
+              status_code: 202
+              message: Здесь ваш банковский счет!
+        - server_port: 9090
+          server_name: invest-ansible.kz
+          locations:
+            - path: /home
+              status_code: 200
+              message: Добро пожаловать на Jusan Invest!
+            - path: /user
+              status_code: 203
+              message: Это страница с вашим брокерским счетом.
+      loop_control:
+        label: "{{ item.server_name }}"
+
+    - name: Reload Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
