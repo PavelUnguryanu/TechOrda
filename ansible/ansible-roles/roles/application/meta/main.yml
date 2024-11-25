@@ -1,0 +1,5 @@
+galaxy_info:
+  author: Pavel Unguryanu
+  description: Role for deploying and managing API services.
+  short_description: Deploys and manages API services.
+  version: 1.0

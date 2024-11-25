@@ -1,0 +1,5 @@
+galaxy_info:
+  author: Pavel Unguryanu
+  description: Role for configuring Nginx.
+  short_description: Configures Nginx server and its virtual hosts.
+  version: 1.0
