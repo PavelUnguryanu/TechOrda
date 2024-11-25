@@ -1,0 +1,35 @@
+---
+- name: Deploy and start API service
+  hosts: app
+  become: yes
+
+  tasks:
+    - name: Download API binary
+      get_url:
+        url: https://github.com/jusan-singularity/track-devops-systemd-api/releases/download/v0.1/api
+        dest: /tmp/api
+        mode: '0755'
+
+    - name: Change permissions for API binary
+      file:
+        path: /tmp/api
+        mode: '0755'
+
+    - name: Copy api.service file to /etc/systemd/system
+      copy:
+        src: files/api.service
+        dest: /etc/systemd/system/api.service
+        mode: '0644'
+      notify:
+        - Reload systemd
+
+    - name: Start API service
+      systemd:
+        name: api
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
