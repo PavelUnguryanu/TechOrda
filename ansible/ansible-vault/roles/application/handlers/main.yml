@@ -1,0 +1,10 @@
+---
+# Handlers for application role
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: restart api
+  systemd:
+    name: api
+    state: restarted

@@ -1,0 +1,16 @@
+---
+- hosts: lb
+  become: true
+  vars_files:
+    - roles/nginx-configuration/vars/nginx_secret_token.yml
+  roles:
+    - nginx-configuration
+  vars:
+    server_port: 7070
+    server_name: jmart-ansible.kz
+    secret: "{{ secret_token }}"
+
+- hosts: app
+  become: true
+  roles:
+    - application

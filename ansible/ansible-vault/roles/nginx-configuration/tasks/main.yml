@@ -1,0 +1,31 @@
+---
+# Tasks for nginx-configuration role
+
+- name: Ensure Nginx configuration directory exists
+  file:
+    path: /etc/nginx/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy Nginx configuration
+  copy:
+    src: templates/nginx.conf
+    dest: /etc/nginx/conf.d/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx
+
+- name: Test Nginx configuration
+  command: nginx -t
+  register: nginx_test
+  failed_when: nginx_test.rc != 0
+  changed_when: false
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded
+  when: nginx_test.rc == 0
