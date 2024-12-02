@@ -1,78 +1,84 @@
-# ansible-galaxy
+Отчет по выполнению задания: Настройка Ansible Galaxy и конфигурация Nginx
+1. Создание ветки galaxy
 
-Роли в Ansible мощные и гибкие; они собирают в себе наборы конфигураций, таски,
-переменные, шаблоны и другие файлы, чтобы их можно было легко переиспользовать
-на разных серверах.
+Работа велась в ветке galaxy, которая была создана от ветки vault:
 
-Однако каждый раз начинать с нуля писать роли - это неудобно; было бы лучше,
-если бы люди могли совместно использовать роли для часто устанавливаемых приложений и сервисов.
+git checkout vault
+git checkout -b galaxy
 
-## Ansible Galaxy
+2. Установка роли geerlingguy.nginx
 
-Ansible Galaxy — это репозиторий Ansible ролей и не только, который поддерживается
-людьми со всего света. Существуют тысячи доступных ролей, которые могут настраивать
-и развертывать популярные приложения, и все они доступны через команду `ansible-galaxy`.
+Роль была установлена с помощью команды:
 
-## Получение ролей из Galaxy
+ansible-galaxy install geerlingguy.nginx
 
-Одной из основных функций команды `ansible-galaxy` является получение ролей из Galaxy.
-Роли должны быть загружены, прежде чем их можно будет использовать в плейбуках.
+Роль успешно загружена в систему.
+3. Обновление playbook
 
-Например, команду по скачиванию роли, которая устанавливает PHP на сервер:
+Роль nginx была заменена на geerlingguy.nginx в playbook.yml. Итоговый код:
 
-```bash
-ansible-galaxy install geerlingguy.php
-```
-
-## Использование requrements.yaml чтобы описать зависимости плейбука
-
-Если конфигурация вашей инфраструктуры требует большого количества ролей Ansible,
-установка их всех с помощью команд установки ролей `ansible-galaxy` может быть утомительной.
-
-Однако вы можете передать команде `ansible-galaxy` файл зависимостей и запустить с флагом `-r`
-для автоматической загрузки всех зависимостей.
-
-Пример файла requirements.yml выглядит так:
-
-```yaml
-roles:
-  - name: geerlingguy.nginx
-
-  - name: geerlingguy.php
-    version: 4.7.0
-```
-
-Чтобы установить роли, определенные в файле `requirements.yml`, используйте команду:
-
-```bash
-ansible-galaxy install -r requirements.yml
-```
-
-Теперь для того, чтобы вызвать скачанные роли в нашем плейбуке, их можно просто
-добавить как обычную роль, как мы делали раньше.
-
-```yaml
 ---
-- hosts: all
-  become: yes
+# Playbook for configuring the application and load balancer
 
+- hosts: lb
+  become: true
+  vars_files:
+    - roles/nginx-configuration/vars/nginx_secret_token.yml
   roles:
     - geerlingguy.nginx
-    - geerlingguy.php
-```
+    - nginx-configuration
+  vars:
+    server_port: 7070
+    server_name: jmart-ansible.kz
+    secret: "{{ secret_token }}"
 
-### Задание
+- hosts: app
+  become: true
+  roles:
+    - application
 
-1. В репозитории ([ССЫЛКА GITHUB CLASSROOM]) создайте ветку `galaxy`, которая исходит от ветки `vault`.
-   Вести работу будем в ней.
-2. Установите роль [geerlingguy.nginx](https://galaxy.ansible.com/geerlingguy/nginx).
-3. Замените роль `nginx` на `geerlingguy.nginx`.
-4. Удалите роль `nginx` из `roles`.
-5. Запишите в файл `requirements.yaml` зависимости.
-6. Запустите и проверьте на работоспособность.
-7. Запушить в гит.
-8. Прислать ссылку на репозиторий.
+4. Создание файла шаблона nginx.conf.j2
 
----
+Для корректной работы был создан шаблон nginx.conf.j2 в директории roles/nginx-configuration/templates:
 
-### Ответ
+server {
+    listen {{ server_port }};
+    server_name {{ server_name }};
+
+    location /main {
+        return 200 "{{ secret }}";
+    }
+}
+
+5. Настройка задачи деплоя
+
+Задача деплоя шаблона была обновлена для использования модуля template:
+
+- name: Deploy Nginx configuration
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/conf.d/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nginx
+
+6. Проверка
+
+После применения playbook выполнены следующие проверки:
+
+    Проверка состояния Nginx:
+
+sudo systemctl status nginx
+
+Проверка синтаксиса конфигурации Nginx:
+
+sudo nginx -t
+
+Тестирование работы через curl:
+
+    curl http://localhost:7070/main
+
+Результат:
+
+Jusan Singularity

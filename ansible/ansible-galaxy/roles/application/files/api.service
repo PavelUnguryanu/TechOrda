@@ -1,0 +1,12 @@
+[Unit]
+Description=FastAPI Application Service
+After=network.target
+
+[Service]
+ExecStart=/tmp/api
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
