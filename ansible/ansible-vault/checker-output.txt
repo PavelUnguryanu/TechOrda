@@ -1,3 +1,0 @@
-nginx: ✅✅✅✅✅✅✅✅✅✅✅✅✅✅
-app: ✅
-❌ upstream header not present
